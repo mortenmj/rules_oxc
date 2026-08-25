@@ -1,9 +1,7 @@
 """TypeScript declaration transpiler for ts_project."""
 
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
-
-# buildifier: disable=bzl-visibility
-load("@aspect_rules_ts//ts/private:ts_lib.bzl", "lib")
+load(":util.bzl", "files_relative_to_package", "to_out_path")
 
 _EMPTY_DEPSET = depset()
 
@@ -21,7 +19,7 @@ def _dts_transpiler_impl(ctx):
     if ctx.attr.out_dir != "" and ctx.attr.root_dir == "":
         fail("When out_dir is set, root_dir must also be set.")
 
-    src_paths = lib.files_relative_to_package(ctx, ctx.files.srcs)
+    src_paths = files_relative_to_package(ctx, ctx.files.srcs)
     for src, src_path in zip(ctx.files.srcs, src_paths):
         # {root_dir}/path/to/file.ts
 
@@ -44,7 +42,7 @@ def _dts_transpiler_impl(ctx):
         out_path = src_path[:ext_idx] + _EXT_MAP.get(src_path[ext_idx:], ".d.ts")
 
         # {out_dir}/path/to/file.d.ts
-        out_path = lib.to_out_path(out_path, ctx.attr.out_dir, ctx.attr.root_dir)
+        out_path = to_out_path(out_path, ctx.attr.out_dir, ctx.attr.root_dir)
         out = ctx.actions.declare_file(out_path)
         outs.append(out)
         srcs.append(src)

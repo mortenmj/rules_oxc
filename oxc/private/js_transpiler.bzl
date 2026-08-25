@@ -1,9 +1,7 @@
 """TypeScript-to-JavaScript transpiler using OXC."""
 
 load("@aspect_rules_js//js:providers.bzl", "JsInfo")
-
-# buildifier: disable=bzl-visibility
-load("@aspect_rules_ts//ts/private:ts_lib.bzl", "lib")
+load(":util.bzl", "files_relative_to_package", "to_out_path")
 
 _EMPTY_DEPSET = depset()
 
@@ -67,7 +65,7 @@ def _js_transpiler_impl(ctx):
     if ctx.attr.out_dir != "" and ctx.attr.root_dir == "":
         fail("When out_dir is set, root_dir must also be set.")
 
-    src_paths = lib.files_relative_to_package(ctx, ctx.files.srcs)
+    src_paths = files_relative_to_package(ctx, ctx.files.srcs)
 
     for src, src_path in zip(ctx.files.srcs, src_paths):
         # Type declaration files have no JS output.
@@ -95,7 +93,7 @@ def _js_transpiler_impl(ctx):
         if src_ext in (".js", ".jsx"):
             if not ctx.attr.allow_js:
                 continue
-            out_path = lib.to_out_path(src_path, ctx.attr.out_dir, ctx.attr.root_dir)
+            out_path = to_out_path(src_path, ctx.attr.out_dir, ctx.attr.root_dir)
             out = ctx.actions.declare_file(out_path)
             ctx.actions.run_shell(
                 inputs = [src],
@@ -111,7 +109,7 @@ def _js_transpiler_impl(ctx):
 
         out_ext = _EXT_MAP.get(src_ext, ".js")
         out_path = src_path[:ext_idx] + out_ext
-        out_path = lib.to_out_path(out_path, ctx.attr.out_dir, ctx.attr.root_dir)
+        out_path = to_out_path(out_path, ctx.attr.out_dir, ctx.attr.root_dir)
         out = ctx.actions.declare_file(out_path)
         outs.append(out)
         default_outs.append(out)
